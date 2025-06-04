@@ -1,0 +1,70 @@
+{% extends "feira_app/base.html" %}
+
+{% block title %}Minha Lista - Feira ICEFLU{% endblock %}
+
+{% block content %}
+<h2>Minha Lista de Compras</h2>
+
+{% if beneficiario %}
+    <p>Beneficiário: <strong>{{ beneficiario.nome }}</strong></p>
+    <p>Seu benefício mensal: R$ {{ beneficiario.beneficio_mensal|floatformat:2 }}</p>
+{% endif %}
+
+{% if lista_compra %}
+    <p>Status da Lista: <strong>{{ lista_compra.get_status_display }}</strong></p>
+    <p>Limite de Compra: <strong>R$ {{ lista_compra.limite_compra_calculado|floatformat:2 }}</strong></p>
+    <hr>
+    {% if itens_com_forms %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Preço Unit. (compra)</th>
+                    <th>Quantidade</th>
+                    <th>Subtotal</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in itens_com_forms %}
+                <tr>
+                    <td>{{ data.item_obj.produto.nome }}</td>
+                    <td>R$ {{ data.item_obj.preco_unitario_no_momento|floatformat:2 }}</td>
+                    <td>
+                        <form method="post" action="{% url 'feira_app:update_list_item' data.item_obj.id %}" class="d-inline">
+                            {% csrf_token %}
+                            {{ data.update_form.quantidade }}
+                            <button type="submit" class="btn btn-primary btn-sm">Atualizar</button>
+                        </form>
+                    </td>
+                    <td>R$ {{ data.item_obj.subtotal|floatformat:2 }}</td>
+                    <td>
+                        <form method="post" action="{% url 'feira_app:remove_from_list' data.item_obj.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Remover</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-end"><strong>Total da Lista:</strong></td>
+                    <td><strong>R$ {{ lista_compra.total_lista|floatformat:2 }}</strong></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="text-end"><strong>Limite Restante:</strong></td>
+                    {# MODIFICAÇÃO AQUI para usar a nova variável de contexto #}
+                    <td><strong>R$ {{ limite_restante|floatformat:2 }}</strong></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    {% else %}
+        <p>Sua lista está vazia. Adicione produtos <a href="{% url 'feira_app:produto_list' %}">aqui</a>.</p>
+    {% endif %}
+{% else %}
+    <p>Nenhuma lista ativa encontrada.</p>
+{% endif %}
+{% endblock %}

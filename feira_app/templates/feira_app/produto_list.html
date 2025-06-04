@@ -1,0 +1,35 @@
+{% extends "feira_app/base.html" %}
+
+{% block title %}Produtos - Feira ICEFLU{% endblock %}
+
+{% block content %}
+<h2>Produtos Disponíveis</h2>
+{% if beneficiario and lista_ativa %}
+    <p>Seu limite de compra para esta lista: <strong>R$ {{ lista_ativa.limite_compra_calculado|floatformat:2 }}</strong></p>
+    <p>Total atual da sua lista: <strong>R$ {{ lista_ativa.total_lista|floatformat:2 }}</strong></p>
+{% endif %}
+
+<div class="row">
+    {% for produto in produtos %}
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ produto.nome }}</h5>
+                <p class="card-text">
+                    Preço: R$ {{ produto.preco_unitario|floatformat:2 }}
+                    {% if produto.unidade_medida %}({{ produto.unidade_medida }}){% endif %}
+                </p>
+                <form method="post" action="{% url 'feira_app:add_to_list' produto.id %}">
+                    {% csrf_token %}
+                    {{ add_form.quantidade.label_tag }}
+                    {{ add_form.quantidade }}
+                    <button type="submit" class="btn btn-success btn-sm">Adicionar à Lista</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>Nenhum produto disponível no momento.</p>
+    {% endfor %}
+</div>
+{% endblock %}

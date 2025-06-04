@@ -1,0 +1,1 @@
+web: gunicorn feira_iceflu_project.wsgi --log-file -
