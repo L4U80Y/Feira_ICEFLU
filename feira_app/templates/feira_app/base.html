@@ -33,7 +33,7 @@
                         <li class="nav-item">
                             <span class="navbar-text me-3">
                                 Olá, {{ user.username }}
-                                {% if beneficiario %} (Benefício: R$ {{ beneficiario.beneficio_mensal|floatformat:2 }}) {% endif %}
+                                {% if beneficiario %} (Benefício Mensal: R$ {{ beneficiario.beneficio_mensal|floatformat:2 }}) {% endif %}
                             </span>
                         </li>
                         <li class="nav-item">
