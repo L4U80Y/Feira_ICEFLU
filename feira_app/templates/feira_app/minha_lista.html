@@ -33,7 +33,7 @@
                     <td>
                         <form method="post" action="{% url 'feira_app:update_list_item' data.item_obj.id %}" class="d-flex align-items-center" style="gap: 5px;">
                             {% csrf_token %}
-                            {{ data.update_form.quantidade.as_widget(attrs={'class': 'form-control form-control-sm', 'style': 'width: 70px;'}) }}
+                            <div style="width: 70px;"> {{ data.update_form.quantidade }} </div>
                             <button type="submit" class="btn btn-primary btn-sm">✅</button>
                         </form>
                     </td>
