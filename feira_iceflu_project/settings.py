@@ -67,6 +67,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'feira_iceflu_project.urls'
 
+LOGIN_URL = '/login/'
+
 LOGIN_REDIRECT_URL = '/produtos/' 
 
 TEMPLATES = [
