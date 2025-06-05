@@ -20,7 +20,7 @@
                 <tr>
                     <th>Produto</th>
                     <th>Preço Unit. (compra)</th>
-                    <th>Quantidade</th>
+                    <th>Qtd.</th> {# Label alterado #}
                     <th>Subtotal</th>
                     <th>Ações</th>
                 </tr>
@@ -33,15 +33,19 @@
                     <td>
                         <form method="post" action="{% url 'feira_app:update_list_item' data.item_obj.id %}" class="d-flex align-items-center" style="gap: 5px;">
                             {% csrf_token %}
-                            <div style="width: 70px;"> {{ data.update_form.quantidade }} </div>
-                            <button type="submit" class="btn btn-primary btn-sm">✅</button>
+                            <div style="width: 70px;">
+                                {{ data.update_form.quantidade }}
+                            </div>
+                            {# Botão de atualizar modificado #}
+                            <button type="submit" style="background: transparent; border: none; padding: 0; font-size: 1.1em; color: #0d6efd; cursor: pointer; vertical-align: middle;" aria-label="Atualizar quantidade">✅</button>
                         </form>
                     </td>
                     <td>R$ {{ data.item_obj.subtotal|floatformat:2 }}</td>
                     <td>
                         <form method="post" action="{% url 'feira_app:remove_from_list' data.item_obj.id %}" class="d-inline">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-danger btn-sm">Remover</button>
+                            {# Botão de remover modificado #}
+                            <button type="submit" style="background: transparent; border: none; padding: 0; font-size: 1.1em; color: #dc3545; cursor: pointer; vertical-align: middle;" aria-label="Remover item">❌</button>
                         </form>
                     </td>
                 </tr>
@@ -55,7 +59,6 @@
                 </tr>
                 <tr>
                     <td colspan="3" class="text-end"><strong>Limite Restante:</strong></td>
-                    {# MODIFICAÇÃO AQUI para usar a nova variável de contexto #}
                     <td><strong>R$ {{ limite_restante|floatformat:2 }}</strong></td>
                     <td></td>
                 </tr>
