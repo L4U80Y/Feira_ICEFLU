@@ -9,28 +9,41 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+import dj_database_url
 import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# CHAVE SECRETA
+# ATENÇÃO: mantenha a chave secreta usada em produção em segredo!
+# Use uma variável de ambiente no Render e um fallback seguro para desenvolvimento local.
+SECRET_KEY = os.environ.get('SECRET_KEY', 'uma-chave-secreta-padrao-para-desenvolvimento-se-nao-definida')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^v@1p4^e%+a1dv69#*4sh@r+bs^*r9j+*@mvoxmr396!_c)%+b'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# MODO DEBUG
+# ATENÇÃO: nunca rode com debug ligado em produção!
+# DEBUG será False se a variável de ambiente RENDER estiver definida (ou seja, no Render)
+# e True caso contrário (ou seja, localmente, a menos que você defina RENDER localmente).
+DEBUG = 'RENDER' not in os.environ
 
 ALLOWED_HOSTS = []
 
+# Render define a variável de ambiente RENDER_EXTERNAL_HOSTNAME
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    # Se você tiver um domínio customizado no futuro, adicione-o aqui também,
+    # de preferência lendo de outra variável de ambiente.
+    # Ex: MY_CUSTOM_DOMAIN = os.environ.get('MY_CUSTOM_DOMAIN')
+    # if MY_CUSTOM_DOMAIN:
+    #     ALLOWED_HOSTS.append(MY_CUSTOM_DOMAIN)
+else:
+    # Para desenvolvimento local, se RENDER_EXTERNAL_HOSTNAME não estiver definida
+    ALLOWED_HOSTS.extend(['127.0.0.1', 'localhost'])
+
 
 # Application definition
- 
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -83,7 +96,14 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
+# Sobrescreve a configuração do banco de dados se DATABASE_URL estiver definida (no Render)
+DATABASE_URL_RENDER = os.environ.get('DATABASE_URL')
+if DATABASE_URL_RENDER:
+    DATABASES['default'] = dj_database_url.config(
+        default=DATABASE_URL_RENDER,
+        conn_max_age=600, # Opcional: tempo de vida da conexão
+        ssl_require=True   # Render geralmente requer SSL para conexões de DB
+    )
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
