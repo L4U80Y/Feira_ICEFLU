@@ -31,10 +31,10 @@
                     <td>{{ data.item_obj.produto.nome }}</td>
                     <td>R$ {{ data.item_obj.preco_unitario_no_momento|floatformat:2 }}</td>
                     <td>
-                        <form method="post" action="{% url 'feira_app:update_list_item' data.item_obj.id %}" class="d-inline">
+                        <form method="post" action="{% url 'feira_app:update_list_item' data.item_obj.id %}" class="d-flex align-items-center" style="gap: 5px;">
                             {% csrf_token %}
-                            {{ data.update_form.quantidade }}
-                            <button type="submit" class="btn btn-primary btn-sm">Atualizar</button>
+                            {{ data.update_form.quantidade.as_widget(attrs={'class': 'form-control form-control-sm', 'style': 'width: 70px;'}) }}
+                            <button type="submit" class="btn btn-primary btn-sm">✅</button>
                         </form>
                     </td>
                     <td>R$ {{ data.item_obj.subtotal|floatformat:2 }}</td>
