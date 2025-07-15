@@ -54,7 +54,8 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'feira_app.middleware.DebugCSRFMiddleware',  # <--- ADICIONE ESTA LINHA AQUI
+    'django.middleware.csrf.CsrfViewMiddleware', # O nosso middleware precisa vir antes deste
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
