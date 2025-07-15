@@ -4,44 +4,35 @@ import os
 from pathlib import Path
 
 # --- Configuração Base ---
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # --- Configurações de Segurança e Deploy ---
 
-# CHAVE SECRETA: Lida da variável de ambiente em produção.
-# O valor de fallback é APENAS para desenvolvimento local e não deve ser usado em produção.
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-key-for-local-dev-only')
 
-# MODO DEBUG: Desligado automaticamente em produção no Google Cloud.
-# 'K_SERVICE' é uma variável de ambiente que o Google Cloud Run define.
-# Se ela existir, DEBUG será False. Caso contrário (localmente), será True.
 DEBUG = 'K_SERVICE' not in os.environ
 
-# HOSTS PERMITIDOS E CONFIGURAÇÕES DE PROXY SEGURO
-ALLOWED_HOSTS = []
-
+# --- Bloco de Configuração de Produção Explícito ---
 if 'K_SERVICE' in os.environ:
-    # --- Configurações para Produção no Google Cloud Run ---
+    # Use a sua URL exata aqui
+    SERVICE_URL = 'feira-iceflu-web-763346611327.southamerica-east1.run.app'
     
-    # Permite acesso a partir do domínio principal do serviço no Cloud Run.
-    ALLOWED_HOSTS.append('.run.app')
+    ALLOWED_HOSTS = [SERVICE_URL]
     
-    # Informa ao Django para confiar na conexão segura feita pelo proxy do Google.
-    # Essencial para CSRF, redirects e cookies funcionarem corretamente com HTTPS.
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'httpss') # AQUI ESTAVA A CORREÇÃO FALTANTE
+    # Define as origens confiáveis para a URL exata.
+    CSRF_TRUSTED_ORIGINS = [f'https://{SERVICE_URL}']
     
-    # Garante que os cookies de sessão e CSRF só sejam enviados via HTTPS.
+    # Informa ao Django para confiar no cabeçalho do proxy do Google.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    
+    # Garante que os cookies só sejam enviados via HTTPS.
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     
-    # Define as origens (domínios) confiáveis para requisições que modificam dados (POST).
-    CSRF_TRUSTED_ORIGINS = ['https://*.run.app']
-    
 else:
     # --- Configurações para Desenvolvimento Local ---
-    ALLOWED_HOSTS.extend(['127.0.0.1', 'localhost'])
+    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 # --- Definições da Aplicação ---
@@ -87,9 +78,7 @@ WSGI_APPLICATION = 'feira_iceflu_project.wsgi.application'
 
 
 # --- Configuração do Banco de Dados ---
-# Alterna entre produção (Cloud SQL) e desenvolvimento (SQLite).
 if 'K_SERVICE' in os.environ:
-    # Configuração para produção (lendo de variáveis de ambiente)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -100,7 +89,6 @@ if 'K_SERVICE' in os.environ:
         }
     }
 else:
-    # Configuração para desenvolvimento local
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
