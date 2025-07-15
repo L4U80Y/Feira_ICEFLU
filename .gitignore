@@ -82,3 +82,6 @@ venv.bak/
 # macOS
 #
 .DS_Store
+
+# Arquivo de senhas
+env.yaml
