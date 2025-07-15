@@ -29,6 +29,9 @@ if 'K_SERVICE' in os.environ:
     # Garante que os cookies só sejam enviados via HTTPS.
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    # Instrui o navegador a enviar o cookie CSRF em todos os contextos.
+    # Requer que CSRF_COOKIE_SECURE seja True.
+    CSRF_COOKIE_SAMESITE = 'None'
     
 else:
     # --- Configurações para Desenvolvimento Local ---
