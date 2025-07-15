@@ -32,6 +32,9 @@ if 'K_SERVICE' in os.environ:
     # Instrui o navegador a enviar o cookie CSRF em todos os contextos.
     # Requer que CSRF_COOKIE_SECURE seja True.
     CSRF_COOKIE_SAMESITE = 'None'
+    # Força o Django a armazenar o segredo CSRF na sessão, em vez de um cookie separado.
+    # Isso pode resolver problemas de cookies em ambientes de proxy complexos.
+    CSRF_USE_SESSIONS = True
     
 else:
     # --- Configurações para Desenvolvimento Local ---
