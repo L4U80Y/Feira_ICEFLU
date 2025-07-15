@@ -9,37 +9,34 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-import dj_database_url
+# Removido dj_database_url pois não é mais usado na configuração do Google Cloud
 import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+# --- CONFIGURAÇÕES DE SEGURANÇA E AMBIENTE (ATUALIZADO PARA GOOGLE CLOUD) ---
+
 # CHAVE SECRETA
-# ATENÇÃO: mantenha a chave secreta usada em produção em segredo!
-# Use uma variável de ambiente no Render e um fallback seguro para desenvolvimento local.
-SECRET_KEY = os.environ.get('SECRET_KEY', 'uma-chave-secreta-padrao-para-desenvolvimento-se-nao-definida')
+# Lida da variável de ambiente em produção. O valor de fallback é APENAS para desenvolvimento local.
+# NÃO COLOQUE A CHAVE DE PRODUÇÃO DIRETAMENTE AQUI.
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-key-for-local-dev-only')
 
 # MODO DEBUG
-# ATENÇÃO: nunca rode com debug ligado em produção!
-# DEBUG será False se a variável de ambiente RENDER estiver definida (ou seja, no Render)
-# e True caso contrário (ou seja, localmente, a menos que você defina RENDER localmente).
-DEBUG = 'RENDER' not in os.environ
+# Desligado automaticamente em produção no Google Cloud.
+# 'K_SERVICE' é uma variável de ambiente que o Google Cloud Run define automaticamente.
+DEBUG = 'K_SERVICE' not in os.environ # <-- MUDANÇA: Lógica alterada de 'RENDER' para 'K_SERVICE'
 
+# HOSTS PERMITIDOS
 ALLOWED_HOSTS = []
-
-# Render define a variável de ambiente RENDER_EXTERNAL_HOSTNAME
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-    # Se você tiver um domínio customizado no futuro, adicione-o aqui também,
-    # de preferência lendo de outra variável de ambiente.
-    # Ex: MY_CUSTOM_DOMAIN = os.environ.get('MY_CUSTOM_DOMAIN')
-    # if MY_CUSTOM_DOMAIN:
-    #     ALLOWED_HOSTS.append(MY_CUSTOM_DOMAIN)
+if 'K_SERVICE' in os.environ:
+    # Em produção no Cloud Run, é seguro permitir o domínio principal do serviço.
+    ALLOWED_HOSTS.append('.run.app') # <-- MUDANÇA: Lógica alterada para o Google Cloud
+    #ALLOWED_HOSTS.append('feira-iceflu-web-763346611327.southamerica-east1.run.app')
 else:
-    # Para desenvolvimento local, se RENDER_EXTERNAL_HOSTNAME não estiver definida
+    # Para desenvolvimento local
     ALLOWED_HOSTS.extend(['127.0.0.1', 'localhost'])
 
 
@@ -51,12 +48,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'feira_app.apps.FeiraAppConfig', 
+    'feira_app.apps.FeiraAppConfig',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # WhiteNoise continua útil aqui
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -68,8 +65,7 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'feira_iceflu_project.urls'
 
 LOGIN_URL = '/login/'
-
-LOGIN_REDIRECT_URL = '/produtos/' 
+LOGIN_REDIRECT_URL = '/produtos/'
 
 TEMPLATES = [
     {
@@ -89,23 +85,31 @@ TEMPLATES = [
 WSGI_APPLICATION = 'feira_iceflu_project.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+# --- CONFIGURAÇÃO DO BANCO DE DADOS (ATUALIZADO PARA GOOGLE CLOUD) ---
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Esta lógica alterna entre o banco de dados de produção (Cloud SQL)
+# e o banco de dados de desenvolvimento local (SQLite).
+
+if 'K_SERVICE' in os.environ:
+    # Configuração para produção (lendo de variáveis de ambiente)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'HOST': f"/cloudsql/{os.environ.get('INSTANCE_CONNECTION_NAME')}",
+            'USER': os.environ.get('DB_USER', 'postgres'), # 'postgres' como fallback
+            'PASSWORD': os.environ.get('DB_PASSWORD'),
+            'NAME': os.environ.get('DB_NAME', 'postgres'), # 'postgres' como fallback
+        }
     }
-}
-# Sobrescreve a configuração do banco de dados se DATABASE_URL estiver definida (no Render)
-DATABASE_URL_RENDER = os.environ.get('DATABASE_URL')
-if DATABASE_URL_RENDER:
-    DATABASES['default'] = dj_database_url.config(
-        default=DATABASE_URL_RENDER,
-        conn_max_age=600, # Opcional: tempo de vida da conexão
-        ssl_require=True   # Render geralmente requer SSL para conexões de DB
-    )
+else:
+    # Configuração para desenvolvimento local
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -129,12 +133,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = 'pt-br' # <-- MUDANÇA: Alterado para Português do Brasil
+TIME_ZONE = 'America/Sao_Paulo' # <-- MUDANÇA: Alterado para fuso horário de São Paulo
 
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -142,9 +144,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles' # <--- Onde o collectstatic irá copiar os arquivos estáticos para o deploy
-
-# Opcional, mas recomendado para melhor performance com WhiteNoise:
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
